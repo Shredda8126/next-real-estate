@@ -1,6 +1,6 @@
 import { connectDB } from '@/lib/db';
-import Enquiry from '@/models/Enquiry';
-import Property from '@/models/Property';
+import Enquiry from '@/models/enquiry';
+import Property from '@/models/property';
 import { getTokenFromHeader, verifyToken } from '@/lib/jwt';
 
 export async function PATCH(request, { params }) {

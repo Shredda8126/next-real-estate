@@ -13,10 +13,6 @@ const nextConfig = {
       responseLimit: false,
     },
   },
-  // Increase fetch timeout
-  async fetchTimeout(timeout) {
-    return timeout || 30000; // 30 seconds
-  },
 };
 
 export default nextConfig;
