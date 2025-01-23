@@ -5,21 +5,6 @@ import User from '@/models/user';
 import Enquiry from '@/models/enquiry';
 import Property from '@/models/property';
 
-// Define the Property model
-const propertySchema = new mongoose.Schema({
-  title: String,
-  images: [String],
-  location: String,
-  price: Number,
-  owner: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  }
-});
-
-const Property = mongoose.models.Property || mongoose.model('Property', propertySchema);
-
 export async function GET(request) {
   try {
     const authHeader = request.headers.get('authorization');
@@ -54,7 +39,7 @@ export async function GET(request) {
       })
       .populate({
         path: 'property',
-        select: 'title images'
+        select: 'title images location price'
       })
       .sort({ createdAt: -1 });
 
@@ -70,7 +55,7 @@ export async function GET(request) {
       })
       .populate({
         path: 'property',
-        select: 'title images'
+        select: 'title images location price'
       })
       .sort({ createdAt: -1 });
 
