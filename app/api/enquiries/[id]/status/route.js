@@ -7,72 +7,68 @@ const VALID_STATUSES = ["pending", "contacted", "resolved", "archived"];
 
 export async function PATCH(request, { params }) {
   try {
-    // Get the enquiry ID from the URL params - await it first
-    const { id: enquiryId } = await params;
-    if (!enquiryId) {
+    await connectDB();
+
+    const { id: enquiryId } = params;
+
+    // Get the token from the request headers
+    const token = request.headers.get("authorization")?.split(" ")[1];
+
+    if (!token) {
       return NextResponse.json(
-        { error: "Enquiry ID is required" },
-        { status: 400 }
+        { error: "Unauthorized: No token provided" },
+        { status: 401 }
       );
     }
 
-    // Verify authentication
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
-
-    const token = authHeader.split(" ")[1];
+    // Verify the token
     const decoded = verifyToken(token);
-    if (!decoded || !decoded.userId) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+
+    if (!decoded) {
+      return NextResponse.json(
+        { error: "Unauthorized: Invalid token" },
+        { status: 401 }
+      );
     }
 
-    await connectDB();
-
-    // Get the new status from request body
-    const body = await request.json();
-    const status = body?.status?.toLowerCase();
+    // Parse the request body
+    const { status } = await request.json();
 
     // Validate status
-    if (!status || !VALID_STATUSES.includes(status)) {
+    if (!VALID_STATUSES.includes(status)) {
       return NextResponse.json(
-        {
-          error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}`,
-        },
+        { error: "Invalid status" },
         { status: 400 }
       );
     }
 
     // Find the enquiry and verify ownership
-    const enquiry = await Enquiry.findById(enquiryId).populate(
+    const enquiryDoc = await Enquiry.findById(enquiryId).populate(
       "property",
       "owner"
     );
 
-    if (!enquiry) {
-      return NextResponse.json({ error: "Enquiry not found" }, { status: 404 });
+    if (!enquiryDoc) {
+      return NextResponse.json(
+        { error: "Enquiry not found" },
+        { status: 404 }
+      );
     }
 
-    // Verify that the user is the recipient of the enquiry
-    if (enquiry.recipient.toString() !== decoded.userId) {
+    // Check if the current user is the owner of the property
+    if (
+      !enquiryDoc.property ||
+      enquiryDoc.property.owner.toString() !== decoded.userId
+    ) {
       return NextResponse.json(
-        { error: "Not authorized to update this enquiry" },
+        { error: "Unauthorized: Not the property owner" },
         { status: 403 }
       );
     }
 
     // Update the enquiry status
-    enquiry.status = status;
-    try {
-      await enquiry.save();
-    } catch (saveError) {
-      console.error("Error saving enquiry:", saveError);
-      return NextResponse.json(
-        { error: "Failed to update enquiry status" },
-        { status: 500 }
-      );
-    }
+    enquiryDoc.status = status;
+    await enquiryDoc.save();
 
     // Return the updated enquiry with populated fields
     const updatedEnquiry = await Enquiry.findById(enquiryId)
@@ -80,11 +76,11 @@ export async function PATCH(request, { params }) {
       .populate("recipient", "name email")
       .populate("property", "title images");
 
-    return NextResponse.json(updatedEnquiry);
+    return NextResponse.json(updatedEnquiry, { status: 200 });
   } catch (error) {
     console.error("Error updating enquiry status:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to update enquiry status" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
