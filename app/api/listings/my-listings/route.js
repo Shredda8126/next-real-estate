@@ -2,35 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import connectDB from '@/lib/db';
-
-// Define Property model schema
-import mongoose from 'mongoose';
-
-const propertySchema = new mongoose.Schema({
-  title: String,
-  description: String,
-  price: Number,
-  location: String,
-  images: [String],
-  features: [String],
-  type: String,
-  status: String,
-  bedrooms: Number,
-  bathrooms: Number,
-  area: Number,
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
-
-// Create or get the model
-const Property = mongoose.models.Property || mongoose.model('Property', propertySchema);
+import Property from '@/models/property';
 
 export async function GET(request) {
   try {
@@ -53,15 +25,15 @@ export async function GET(request) {
     const formattedListings = listings.map(listing => ({
       ...listing,
       _id: listing._id.toString(),
-      createdAt: listing.createdAt.toISOString(),
+      createdAt: listing.createdAt?.toISOString(),
       userId: listing.userId.toString()
     }));
 
-    return NextResponse.json(formattedListings);
+    return NextResponse.json(formattedListings, { status: 200 });
   } catch (error) {
-    console.error('Get listings error:', error);
+    console.error('Error fetching my listings:', error);
     return NextResponse.json(
-      { error: 'Error fetching listings' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

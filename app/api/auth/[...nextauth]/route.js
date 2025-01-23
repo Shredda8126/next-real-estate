@@ -4,7 +4,7 @@ import connectDB from '@/lib/db';
 import User from '@/models/user';
 import bcrypt from 'bcryptjs';
 
-export const authOptions = {
+const authOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -17,24 +17,17 @@ export const authOptions = {
           await connectDB();
           
           if (!credentials?.email || !credentials?.password) {
-            throw new Error('Email and password are required');
+            return null;
           }
 
           const lowercaseEmail = credentials.email.toLowerCase();
-          console.log('Login attempt for:', lowercaseEmail);
 
           // Find user
           const user = await User.findOne({ email: lowercaseEmail }).select('+password');
           
           if (!user) {
-            console.log('No user found with email:', lowercaseEmail);
-            throw new Error('Invalid credentials');
+            return null;
           }
-
-          console.log('Found user:', {
-            id: user._id.toString(),
-            email: user.email
-          });
 
           // Compare passwords
           const isValid = await bcrypt.compare(
@@ -43,11 +36,8 @@ export const authOptions = {
           );
 
           if (!isValid) {
-            console.log('Password verification failed for:', lowercaseEmail);
-            throw new Error('Invalid credentials');
+            return null;
           }
-
-          console.log('Login successful for:', lowercaseEmail);
 
           // Return user without password
           return {
@@ -59,7 +49,7 @@ export const authOptions = {
 
         } catch (error) {
           console.error('Auth error:', error.message);
-          throw new Error('Invalid credentials');
+          return null;
         }
       }
     })
@@ -91,9 +81,9 @@ export const authOptions = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  debug: true
+  debug: process.env.NODE_ENV === 'development'
 };
 
 const handler = NextAuth(authOptions);
 
-export { handler as GET, handler as POST };
+export { handler as GET, handler as POST, authOptions };

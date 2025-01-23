@@ -29,7 +29,8 @@
       "@/models/*": ["models/*"],
       "@/components/*": ["components/*"],
       "@/lib/*": ["lib/*"]
-    }
+    },
+    "types": ["next-auth", "node"]
   },
   "include": [
     "next-env.d.ts",
