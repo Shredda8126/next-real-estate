@@ -40,7 +40,16 @@ export default function Properties() {
 
   // Effect to fetch properties when filters or page changes
   useEffect(() => {
-    fetchProperties();
+    const safeFetchProperties = async () => {
+      try {
+        await fetchProperties();
+      } catch (err) {
+        console.error("Failed to fetch properties:", err);
+        setError("Failed to load properties. Please try again later.");
+      }
+    };
+
+    safeFetchProperties();
   }, [filters, currentPage]);
 
   const fetchProperties = async () => {
@@ -49,37 +58,28 @@ export default function Properties() {
 
       // Build query string from filters
       const queryParams = new URLSearchParams({
-        page: currentPage,
-        limit: ITEMS_PER_PAGE,
-        ...filters,
+        page: currentPage.toString(),
+        limit: ITEMS_PER_PAGE.toString(),
+        ...Object.fromEntries(
+          Object.entries(filters).filter(([_, v]) => v != null && v !== '')
+        )
       });
 
-      // Remove empty filters
-      for (let [key, value] of queryParams.entries()) {
-        if (!value) queryParams.delete(key);
+      const response = await fetch(`/api/properties?${queryParams}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch properties');
       }
 
-      const res = await fetch(`/api/properties?${queryParams}`);
-      const data = await res.json();
-
-      if (data.error) {
-        // Handle specific authentication errors
-        if (data.error.includes("login") || data.error.includes("token")) {
-          // Redirect to login or clear token
-          localStorage.removeItem("token");
-          router.push("/login");
-          return;
-        }
-        throw new Error(data.error);
-      }
-
-      setProperties(data.properties);
-      setTotalPages(data.pagination.totalPages);
+      const data = await response.json();
+      
+      setProperties(data.properties || []);
+      setTotalPages(data.totalPages || 1);
       setCurrentUserId(data.currentUserId);
-    } catch (error) {
-      setError("Error fetching properties: " + error.message);
-      console.error("Error:", error);
-    } finally {
+      setLoading(false);
+    } catch (err) {
+      console.error("Fetch properties error:", err);
+      setError(err.message);
       setLoading(false);
     }
   };
@@ -132,6 +132,15 @@ export default function Properties() {
       </div>
     );
   };
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#050b2c] to-[#0a1854] py-8 px-4">
