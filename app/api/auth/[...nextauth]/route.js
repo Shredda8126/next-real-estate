@@ -4,7 +4,7 @@ import connectDB from '@/lib/db';
 import User from '@/models/user';
 import bcrypt from 'bcryptjs';
 
-const handler = NextAuth({
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -92,6 +92,8 @@ const handler = NextAuth({
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   debug: true
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
