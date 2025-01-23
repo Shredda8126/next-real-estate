@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/models/*": ["models/*"],
+      "@/models": ["models"]
+    }
+  },
+  "extends": "./node_modules/next/types/tsconfig.json"
+}

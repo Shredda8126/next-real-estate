@@ -5,13 +5,16 @@ const nextConfig = {
     domains: ['res.cloudinary.com', 'placehold.co'],
   },
   serverRuntimeConfig: {
-    // Increase timeout for API routes
     api: {
       bodyParser: {
         sizeLimit: '10mb',
       },
       responseLimit: false,
     },
+  },
+  webpack: (config, { isServer }) => {
+    config.resolve.alias['@/models'] = config.resolve.alias['@/models'] || './models';
+    return config;
   },
 };
 
