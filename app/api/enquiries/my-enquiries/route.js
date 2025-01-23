@@ -3,6 +3,7 @@ import connectDB from '@/lib/db';
 import { getTokenFromHeader, verifyToken } from '@/lib/jwt';
 import User from '@/models/user';
 import Enquiry from '@/models/enquiry';
+import Property from '@/models/property';
 
 // Define the Property model
 const propertySchema = new mongoose.Schema({

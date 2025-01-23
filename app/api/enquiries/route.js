@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Enquiry from '@/models/enquiry';
+import Property from '@/models/property';
 import { verifyToken } from '@/lib/jwt';
 
 export async function POST(request) {
@@ -36,7 +37,7 @@ export async function POST(request) {
     }
 
     // Create the enquiry
-    const enquiry = await Enquiry.create({
+    const enquiryDoc = await Enquiry.create({
       property: propertyId,
       sender: decoded.userId,
       recipient: recipientId,
@@ -45,7 +46,7 @@ export async function POST(request) {
     });
 
     // Populate the enquiry with sender and recipient details
-    const populatedEnquiry = await Enquiry.findById(enquiry._id)
+    const populatedEnquiry = await Enquiry.findById(enquiryDoc._id)
       .populate('sender', 'name email')
       .populate('recipient', 'name email')
       .populate('property', 'title images');

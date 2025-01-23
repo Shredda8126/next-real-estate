@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Property from "@/models/property";
-import Enquiry from "@/models/enquiry"; // Import Enquiry model
+import Enquiry from "@/models/enquiry"; 
 import { verifyToken } from "@/lib/jwt";
 
 // Helper function to get user ID from request
@@ -119,7 +119,7 @@ export async function DELETE(request) {
 
     // Soft delete or hard delete based on business logic
     // Here we're doing a hard delete, but you might want to implement soft delete
-    const result = await property.deleteOne();
+    const result = await Property.deleteOne();
 
     if (result.deletedCount === 0) {
       return NextResponse.json(

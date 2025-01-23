@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Property from "@/models/property";
-import User from "@/models/user"; // Import the User model
+import User from "@/models/user"; 
 import { verifyToken } from "@/lib/jwt";
 
 // Helper function to verify auth
@@ -25,12 +25,12 @@ async function verifyAuth(request) {
     }
 
     // Verify the user exists
-    const user = await User.findById(userId).select("_id");
-    if (!user) {
+    const userFound = await User.findById(userId).select("_id");
+    if (!userFound) {
       return { error: "User not found", status: 401 };
     }
 
-    return { userId: user._id.toString() };
+    return { userId: userFound._id.toString() };
   } catch (error) {
     console.error("Auth verification error:", error);
     return { error: "Authentication failed", status: 401 };
@@ -156,8 +156,8 @@ export async function POST(request) {
     console.log("Creating property with data:", propertyData);
 
     // Create and populate the property
-    const property = await Property.create(propertyData);
-    const populatedProperty = await Property.findById(property._id)
+    const propertyCreated = await Property.create(propertyData);
+    const populatedProperty = await Property.findById(propertyCreated._id)
       .populate("owner", "name email phone")
       .lean();
 

@@ -28,9 +28,9 @@ export async function PATCH(request, { params }) {
     await connectDB();
 
     // Find the enquiry
-    const enquiry = await Enquiry.findById(id).populate('property');
+    const enquiryDoc = await Enquiry.findById(id).populate('property');
 
-    if (!enquiry) {
+    if (!enquiryDoc) {
       return new Response(JSON.stringify({ error: 'Enquiry not found' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' },
@@ -38,8 +38,8 @@ export async function PATCH(request, { params }) {
     }
 
     // Verify that the property belongs to the current user
-    const property = await Property.findById(enquiry.property._id);
-    if (property.owner.toString() !== decoded.userId) {
+    const propertyDoc = await Property.findById(enquiryDoc.property._id);
+    if (propertyDoc.owner.toString() !== decoded.userId) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 403,
         headers: { 'Content-Type': 'application/json' },
@@ -47,10 +47,10 @@ export async function PATCH(request, { params }) {
     }
 
     // Update the enquiry status
-    enquiry.status = status;
-    await enquiry.save();
+    enquiryDoc.status = status;
+    await enquiryDoc.save();
 
-    return new Response(JSON.stringify(enquiry), {
+    return new Response(JSON.stringify(enquiryDoc), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
