@@ -1,13 +1,22 @@
 import { Suspense } from "react";
-import PropertyDetailsClient from "./PropertyDetailsClient";
+import dynamic from 'next/dynamic';
 import connectDB from "@/lib/db";
 import Property from "@/models/property";
 import User from "@/models/user";
 import Enquiry from "@/models/enquiry";
 import mongoose from "mongoose";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/jwt";
-import { formatCurrency } from '@/lib/currencyFormat';
+import cookies from "next/headers";
+import verifyToken from "@/lib/jwt";
+import formatCurrency from '@/lib/currencyFormat';
+
+// Dynamically import the client component
+const PropertyDetailsClient = dynamic(() => import("./PropertyDetailsClient"), {
+  loading: () => (
+    <div className="container mx-auto px-4 py-8 text-center">
+      Loading property details...
+    </div>
+  )
+});
 
 async function getPropertyWithEnquiries(id) {
   try {
@@ -78,9 +87,9 @@ async function getPropertyWithEnquiries(id) {
   }
 }
 
-export async function generateMetadata({ params: { id } }) {
+export async function generateMetadata({ params }) {
   try {
-    const property = await getPropertyWithEnquiries(id);
+    const property = await getPropertyWithEnquiries(params.id);
     return {
       title: property.title,
       description: property.description,
@@ -93,8 +102,9 @@ export async function generateMetadata({ params: { id } }) {
   }
 }
 
-export default async function PropertyDetailsPage({ params: { id } }) {
-  const property = await getPropertyWithEnquiries(id);
+/** @type {import('@/types/page').PropertyDetailsPageProps} */
+export default async function PropertyDetailsPage({ params }) {
+  const property = await getPropertyWithEnquiries(params.id);
   console.log("Property Data:", property);
 
   return (

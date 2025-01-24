@@ -30,7 +30,9 @@
       "@/components/*": ["components/*"],
       "@/lib/*": ["lib/*"]
     },
-    "types": ["next-auth", "node"]
+    "types": ["next-auth", "node"],
+    "strictNullChecks": true,
+    "noImplicitAny": true
   },
   "include": [
     "next-env.d.ts",
