@@ -4,7 +4,7 @@ import connectDB from '@/lib/db';
 import User from '@/models/user';
 import bcrypt from 'bcryptjs';
 
-const authOptions = {
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -55,14 +55,14 @@ const authOptions = {
     })
   ],
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
       }
       return token;
     },
-    session({ session, token }) {
+    async session({ session, token }) {
       session.user.id = token.id;
       session.user.role = token.role;
       return session;
