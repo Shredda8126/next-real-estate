@@ -1,11 +1,10 @@
-import type { NextAuthConfig } from 'next-auth';
-import NextAuth from 'next-auth';
+import NextAuth, { NextAuthConfig } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import connectDB from '@/lib/db';
 import User from '@/models/user';
 import bcrypt from 'bcryptjs';
 
-const config = {
+const config: NextAuthConfig = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -78,7 +77,7 @@ const config = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   }
-} satisfies NextAuthConfig;
+};
 
 export const { handlers, auth, signIn, signOut } = NextAuth(config);
 
