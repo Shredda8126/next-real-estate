@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import PropertiesClient from './PropertiesClient';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import connectDB from '@/lib/db';
 import Property from '@/models/property';
 
@@ -22,7 +22,42 @@ async function fetchProperties() {
 }
 
 export default async function PropertiesPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession({
+    providers: [
+      CredentialsProvider({
+        name: 'Credentials',
+        credentials: {
+          email: { label: "Email", type: "email" },
+          password: { label: "Password", type: "password" }
+        },
+        async authorize(credentials) {
+          // Existing authorization logic
+        }
+      })
+    ],
+    callbacks: {
+      jwt({ token, user }) {
+        if (user) {
+          token.id = user.id;
+          token.role = user.role;
+        }
+        return token;
+      },
+      session({ session, token }) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+        return session;
+      }
+    },
+    pages: {
+      signIn: '/login',
+    },
+    session: {
+      strategy: 'jwt',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    }
+  });
+
   const initialProperties = await fetchProperties();
 
   return (
